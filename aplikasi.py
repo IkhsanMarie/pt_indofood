@@ -31,8 +31,8 @@ st.latex(f"\\frac{{\\partial T_s}}{{\\partial x}} = {sp.latex(dTs_dx)}")
 st.latex(f"\\frac{{\\partial T_s}}{{\\partial y}} = {sp.latex(dTs_dy)}")
 
 # Input pengguna
-x_val = st.number_input("Masukkan waktu kerja mesin (x) [menit]:", value=10.0, min_value=0.0)
-y_val = st.number_input("Masukkan waktu kerja operator (y) [menit]:", value=5.0, min_value=0.0)
+x_val = st.number_input("Masukkan waktu kerja perakitan mesin (x) [menit]:", value=10.0, min_value=0.0)
+y_val = st.number_input("Masukkan waktu kerja perakitan body (y) [menit]:", value=5.0, min_value=0.0)
 
 # Evaluasi nilai
 Ts_val = Ts.subs({x: x_val, y: y_val}).evalf()
