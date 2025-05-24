@@ -21,7 +21,7 @@ dTs_dy = sp.simplify(sp.diff(Ts, y))
 
 # Tampilan di Streamlit
 st.title("🛠 Analisis Waktu Baku Produksi dengan Turunan Parsial")
-st.markdown("Aplikasi ini membantu Anda memahami bagaimana waktu mesin (x) dan operator (y) mempengaruhi total waktu baku produksi.")
+st.markdown("Aplikasi ini membantu Anda memahami bagaimana waktu perakitan mesin (x) dan perakitan body (y) mempengaruhi total waktu baku produksi.")
 
 st.subheader("🔹 Rumus Waktu Baku:")
 st.latex(f"T_s = ({sp.latex(Tn)}) \\cdot (1 + {R}) + {I}")
@@ -43,8 +43,8 @@ dTs_dy_val = dTs_dy.subs({x: x_val, y: y_val}).evalf()
 st.subheader("📊 Evaluasi di Titik yang Diberikan:")
 st.write(f"*x = {x_val} menit, y = {y_val} menit*")
 st.success(f"🕒 Waktu Baku (Ts) = *{Ts_val:.2f} menit*")
-st.info(f"∂Ts/∂x = *{dTs_dx_val:.2f}* → pengaruh perubahan waktu mesin")
-st.info(f"∂Ts/∂y = *{dTs_dy_val:.2f}* → pengaruh perubahan waktu operator")
+st.info(f"∂Ts/∂x = *{dTs_dx_val:.2f}* → pengaruh perubahan waktu perakitan mesin")
+st.info(f"∂Ts/∂y = *{dTs_dy_val:.2f}* → pengaruh perubahan waktu perakitan body")
 
 # ===== Grafik Permukaan Ts(x, y) =====
 st.subheader("📈 Visualisasi Fungsi Waktu Baku dalam Grafik 3D")
@@ -62,8 +62,8 @@ Z = Ts_func(X, Y)
 fig = plt.figure(figsize=(8, 5))
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.9)
-ax.set_xlabel('Waktu Mesin (x)')
-ax.set_ylabel('Waktu Operator (y)')
+ax.set_xlabel('Waktu perakitan Mesin (x)')
+ax.set_ylabel('Waktu perakitan body (y)')
 ax.set_zlabel('Waktu Baku (Ts)')
 ax.set_title('Grafik 3D Waktu Baku Produksi')
 
