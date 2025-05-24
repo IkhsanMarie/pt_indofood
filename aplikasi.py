@@ -1,70 +1,55 @@
-import sympy as sp
 import streamlit as st
-import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-# Setup simbol
-x, y = sp.symbols('x y')
+# Fungsi-fungsi utama
+def total_waktu_produksi(x, y):
+    return 2 * x**2 + 3 * x * y + y**2
 
-# Parameter
-R = 0.15  # Allowance
-I = 3     # Waktu tambahan tetap
+def turunan_parsial(x, y):
+    dT_dx = 4 * x + 3 * y
+    dT_dy = 3 * x + 2 * y
+    return dT_dx, dT_dy
 
-# Waktu normal dan waktu baku
-Tn = 0.7 * x + 0.3 * y
-Ts = Tn * (1 + R) + I
+def waktu_baku(waktu_normal, toleransi):
+    return waktu_normal * (1 + toleransi)
 
-# Turunan parsial
-dTs_dx = sp.simplify(sp.diff(Ts, x))
-dTs_dy = sp.simplify(sp.diff(Ts, y))
+# Judul Aplikasi
+st.title("🔧 Aplikasi Analisis Waktu Baku Produksi Mobil")
 
-# Tampilan di Streamlit
-st.title("🛠 Analisis Waktu Baku Produksi dengan Turunan Parsial")
-st.markdown("Aplikasi ini membantu Anda memahami bagaimana waktu perakitan mesin (x) dan perakitan body (y) mempengaruhi total waktu baku produksi.")
+# Input Pengguna
+st.sidebar.header("📥 Input Data Aktivitas Produksi")
+x = st.sidebar.number_input("Waktu Perakitan Mesin (x) [jam]", min_value=0.0, value=2.0, step=0.5)
+y = st.sidebar.number_input("Waktu Pemasangan Bodi (y) [jam]", min_value=0.0, value=3.0, step=0.5)
+toleransi = st.sidebar.slider("Toleransi (%)", 0, 30, 15, 1)
 
-st.subheader("🔹 Rumus Waktu Baku:")
-st.latex(f"T_s = ({sp.latex(Tn)}) \\cdot (1 + {R}) + {I}")
+# Perhitungan
+waktu_total = total_waktu_produksi(x, y)
+dT_dx, dT_dy = turunan_parsial(x, y)
+wb = waktu_baku(waktu_total, toleransi / 100)
 
-st.subheader("🔹 Turunan Parsial:")
-st.latex(f"\\frac{{\\partial T_s}}{{\\partial x}} = {sp.latex(dTs_dx)}")
-st.latex(f"\\frac{{\\partial T_s}}{{\\partial y}} = {sp.latex(dTs_dy)}")
+# Output Hasil
+st.header("📊 Hasil Perhitungan Waktu Produksi")
+st.write(f"**Total Waktu Produksi (T):** {waktu_total:.2f} jam")
+st.write(f"**Turunan Parsial terhadap x (∂T/∂x):** {dT_dx:.2f}")
+st.write(f"**Turunan Parsial terhadap y (∂T/∂y):** {dT_dy:.2f}")
+st.write(f"**Waktu Baku (dengan toleransi {toleransi}%):** {wb:.2f} jam")
 
-# Input pengguna
-x_val = st.number_input("Masukkan waktu kerja perakitan mesin (x) [menit]:", value=10.0, min_value=0.0)
-y_val = st.number_input("Masukkan waktu kerja perakitan body (y) [menit]:", value=5.0, min_value=0.0)
+# Grafik Pengaruh Aktivitas
+st.subheader("📈 Grafik Pengaruh Aktivitas terhadap Waktu Produksi")
 
-# Evaluasi nilai
-Ts_val = Ts.subs({x: x_val, y: y_val}).evalf()
-dTs_dx_val = dTs_dx.subs({x: x_val, y: y_val}).evalf()
-dTs_dy_val = dTs_dy.subs({x: x_val, y: y_val}).evalf()
+fig, ax = plt.subplots()
+aktivitas = ['Perakitan Mesin (x)', 'Pemasangan Bodi (y)']
+pengaruh = [dT_dx, dT_dy]
+warna = ['#FF6F61', '#6BAED6']
 
-# Tampilkan hasil evaluasi
-st.subheader("📊 Evaluasi di Titik yang Diberikan:")
-st.write(f"*x = {x_val} menit, y = {y_val} menit*")
-st.success(f"🕒 Waktu Baku (Ts) = *{Ts_val:.2f} menit*")
-st.info(f"∂Ts/∂x = *{dTs_dx_val:.2f}* → pengaruh perubahan waktu perakitan mesin")
-st.info(f"∂Ts/∂y = *{dTs_dy_val:.2f}* → pengaruh perubahan waktu perakitan body")
+bars = ax.bar(aktivitas, pengaruh, color=warna)
+ax.set_ylabel("Pengaruh terhadap Total Waktu (jam)")
+ax.set_title("Turunan Parsial ∂T/∂x dan ∂T/∂y")
+ax.grid(True, axis='y', linestyle='--', alpha=0.6)
 
-# ===== Grafik Permukaan Ts(x, y) =====
-st.subheader("📈 Visualisasi Fungsi Waktu Baku dalam Grafik 3D")
-
-# Buat grid x dan y
-x_range = np.linspace(0, 20, 50)
-y_range = np.linspace(0, 20, 50)
-X, Y = np.meshgrid(x_range, y_range)
-
-# Hitung Ts untuk setiap titik (x, y)
-Ts_func = sp.lambdify((x, y), Ts, 'numpy')
-Z = Ts_func(X, Y)
-
-# Plot menggunakan Matplotlib
-fig = plt.figure(figsize=(8, 5))
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.9)
-ax.set_xlabel('Waktu perakitan Mesin (x)')
-ax.set_ylabel('Waktu perakitan body (y)')
-ax.set_zlabel('Waktu Baku (Ts)')
-ax.set_title('Grafik 3D Waktu Baku Produksi')
+# Tambahkan label di atas bar
+for bar in bars:
+    yval = bar.get_height()
+    ax.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval:.1f}', ha='center', va='bottom', fontweight='bold')
 
 st.pyplot(fig)
