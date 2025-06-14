@@ -1,94 +1,97 @@
 import streamlit as st
+import math
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
-# Fungsi perhitungan
-def total_waktu_produksi(x, y):
-    return 2 * x**2 + 3 * x * y + y**2
+st.set_page_config(page_title="Sistem Operasi Franchise", layout="wide")
 
-def turunan_parsial(x, y):
-    dT_dx = 4 * x + 3 * y
-    dT_dy = 3 * x + 2 * y
-    return dT_dx, dT_dy
+st.title("📦📈🔁 Sistem Operasi Franchise Kopi")
+st.markdown("Gabungan Model: *Optimasi Produksi, Persediaan, dan Antrian*")
 
-def waktu_baku(waktu_normal, toleransi):
-    return waktu_normal * (1 + toleransi)
+st.header("1️⃣ Optimasi Produksi")
+st.markdown("Hitung total profit berdasarkan jumlah minuman yang diproduksi")
 
-# Judul Aplikasi
-st.title("🚗 Aplikasi Analisis Waktu Baku Produksi Mobil")
+produk = ["Latte", "Cappuccino", "Matcha", "Hazelnut", "Red Velvet"]
+profit_per_cup = [5000, 6000, 7000, 8000, 9000]
+waktu_per_cup = [2, 3, 2, 4, 3]  # menit
 
-# Sidebar Input
-st.sidebar.header("📥 Input Aktivitas Produksi")
-x = st.sidebar.number_input("Waktu Perakitan Mesin (x) [jam]", min_value=0.0, value=2.0, step=0.5)
-y = st.sidebar.number_input("Waktu Pemasangan Bodi (y) [jam]", min_value=0.0, value=3.0, step=0.5)
-toleransi_persen = st.sidebar.slider("Toleransi (%)", min_value=0, max_value=30, value=15)
+produksi = []
+total_waktu = 0
+total_profit = 0
 
-# Opsional tambahan
-jumlah_pekerja = st.sidebar.slider("Jumlah Pekerja", 1, 100, 10)
-jam_kerja_per_hari = st.sidebar.slider("Jam Kerja per Hari", 4, 24, 8)
+st.subheader("Input Jumlah Produksi Harian")
+col1, col2, col3 = st.columns(3)
+with col1:
+    for i, p in enumerate(produk):
+        jumlah = st.number_input(f"{p} (cup)", min_value=0, value=0, step=1, key=f"prod_{i}")
+        produksi.append(jumlah)
+        total_waktu += jumlah * waktu_per_cup[i]
+        total_profit += jumlah * profit_per_cup[i]
 
-# Perhitungan dasar
-waktu_total = total_waktu_produksi(x, y)
-dT_dx, dT_dy = turunan_parsial(x, y)
-wb = waktu_baku(waktu_total, toleransi_persen / 100)
+kapasitas_waktu = 1200  # menit/hari
+st.info(f"⏱ Total waktu produksi: {total_waktu} menit dari maksimum {kapasitas_waktu} menit")
+st.success(f"💰 Total estimasi profit: Rp{total_profit:,.0f}")
 
-# Total jam kerja harian
-total_jam_harian = jumlah_pekerja * jam_kerja_per_hari
+if total_waktu > kapasitas_waktu:
+    st.warning("⚠ Produksi melebihi kapasitas waktu harian!")
 
-# Output produksi
-unit_mobil_harian = total_jam_harian / wb if wb > 0 else 0
-unit_mesin_harian = (jumlah_pekerja * jam_kerja_per_hari) / x if x > 0 else 0
-
-# Tampilkan hasil perhitungan
-st.header("📊 Hasil Perhitungan Produksi")
-st.write(f"**Total Waktu Produksi (T):** {waktu_total:.2f} jam")
-st.write(f"**Turunan Parsial terhadap x (∂T/∂x):** {dT_dx:.2f}")
-st.write(f"**Turunan Parsial terhadap y (∂T/∂y):** {dT_dy:.2f}")
-st.write(f"**Toleransi:** {toleransi_persen}%")
-st.write(f"**Waktu Baku (WB):** {wb:.2f} jam")
-
-# Rumus latex
-st.subheader("🧮 Rumus Waktu Baku")
-st.latex(r'''
-\text{Waktu Baku (WB)} = \text{Waktu Normal (WN)} \times (1 + \text{Toleransi})
-''')
-st.latex(fr'''
-WB = {waktu_total:.2f} \times (1 + {toleransi_persen / 100:.2f}) = {wb:.2f} \ \text{{jam}}
-''')
-
-# Grafik batang turunan parsial
-st.subheader("📈 Grafik Pengaruh Aktivitas terhadap Waktu Produksi")
+# Visualisasi
 fig, ax = plt.subplots()
-aktivitas = ['Perakitan Mesin (x)', 'Pemasangan Bodi (y)']
-pengaruh = [dT_dx, dT_dy]
-warna = ['#FF6F61', '#6BAED6']
-
-bars = ax.bar(aktivitas, pengaruh, color=warna)
-ax.set_ylabel("Pengaruh terhadap Total Waktu (jam)")
-ax.set_title("Turunan Parsial ∂T/∂x dan ∂T/∂y")
-ax.grid(True, axis='y', linestyle='--', alpha=0.6)
-
-for bar in bars:
-    yval = bar.get_height()
-    ax.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval:.1f}', ha='center', va='bottom', fontweight='bold')
-
+ax.bar(produk, produksi, color='skyblue')
+ax.set_title("Produksi per Produk")
+ax.set_ylabel("Jumlah (cup)")
 st.pyplot(fig)
 
-# Output Produksi
-st.subheader("🚀 Estimasi Produksi Harian")
-st.write(f"**Jumlah Pekerja:** {jumlah_pekerja} orang")
-st.write(f"**Jam Kerja per Hari:** {jam_kerja_per_hari} jam")
-st.write(f"**Total Jam Kerja Harian:** {total_jam_harian} jam")
-st.write(f"**Mobil yang Bisa Dirakit per Hari:** {unit_mobil_harian:.2f} unit")
-st.write(f"**Unit Mesin yang Dirakit (x = {x} jam):** {unit_mesin_harian:.0f} unit per hari")
+st.divider()
+st.header("2️⃣ Model Persediaan (EOQ & ROP)")
 
-# Contoh Kasus Naratif
-st.markdown("---")
-st.subheader("📌 Contoh Interpretasi")
-st.markdown(f"""
-Jika terdapat **{jumlah_pekerja} orang pekerja**, masing-masing bekerja selama **{jam_kerja_per_hari} jam per hari**, 
-dan waktu baku perakitan mobil adalah **{wb:.2f} jam**, maka dalam sehari dapat diselesaikan sekitar 
-**{unit_mobil_harian:.2f} unit mobil lengkap**.
+st.markdown("Hitung jumlah optimal pembelian bahan baku")
 
-Sementara itu, untuk proses perakitan mesin yang membutuhkan **{x} jam per unit**, maka tim produksi mampu menyelesaikan 
-sekitar **{unit_mesin_harian:.0f} unit mesin per hari**.
-""")
+bahan = ["Susu Cair", "Kopi Bubuk", "Bubuk Matcha", "Sirup Hazelnut", "Red Velvet"]
+D = st.number_input("Permintaan tahunan (liter/unit)", value=21900)
+S = st.number_input("Biaya pemesanan (Rp)", value=100000)
+H = st.number_input("Biaya penyimpanan/tahun (Rp/unit)", value=500)
+lead_time = st.number_input("Lead time (hari)", value=1)
+kebutuhan_per_hari = st.number_input("Kebutuhan rata-rata per hari", value=60.0)
+deviasi = st.number_input("Deviasi standar kebutuhan per hari", value=5.0)
+
+st.subheader("📦 Hasil EOQ dan ROP")
+
+eoq = math.sqrt((2 * D * S) / H)
+rop = kebutuhan_per_hari * lead_time + 1.65 * deviasi
+
+st.write(f"🔹 *EOQ (Jumlah optimal pemesanan)*: {eoq:.2f} unit")
+st.write(f"🔹 *ROP (Titik pemesanan ulang)*: {rop:.2f} unit")
+
+# Visualisasi EOQ
+fig2, ax2 = plt.subplots()
+q = np.arange(100, int(eoq*2), 100)
+total_cost = (D/q)*S + (q/2)*H
+ax2.plot(q, total_cost, marker='o')
+ax2.axvline(eoq, color='red', linestyle='--', label=f'EOQ = {eoq:.0f}')
+ax2.set_title("Total Biaya vs Jumlah Pemesanan")
+ax2.set_xlabel("Jumlah Pemesanan")
+ax2.set_ylabel("Total Biaya")
+ax2.legend()
+st.pyplot(fig2)
+
+st.divider()
+st.header("3️⃣ Model Antrian Pembelian Bahan Baku")
+
+st.markdown("Simulasi antrian cabang franchise saat melakukan pembelian bahan baku ke pusat")
+
+lambda_rate = st.number_input("Rata-rata cabang datang per jam (λ)", value=8.0)
+mu_rate = st.number_input("Rata-rata layanan pusat per jam per petugas (μ)", value=3.0)
+c = st.number_input("Jumlah petugas layanan di pusat (c)", min_value=1, value=2)
+
+rho = lambda_rate / (c * mu_rate)
+
+st.subheader("📊 Hasil Evaluasi Antrian")
+st.write(f"🔸 Utilisasi sistem (ρ): {rho:.2f}")
+
+if rho >= 1:
+    st.error("❌ Sistem tidak stabil! Tingkat kedatangan melebihi kapasitas pelayanan.")
+else:
+    st.success("✅ Sistem stabil")
+    st.write("(Estimasi waktu tunggu dan panjang antrian lebih kompleks untuk c > 1, gunakan simulasi lanjut)")
